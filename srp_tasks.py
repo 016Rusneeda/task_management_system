@@ -35,57 +35,59 @@ class FileTaskStorage(TaskStorage):
 
 
 class Task:
-   def __init__(self, task_id, description, due_date=None, completed=False):
-       self.id = task_id
-       self.description = description
-       self.due_date = due_date
-       self.completed = completed
+    def __init__(self, task_id, description, priority, due_date=None, completed=False):
+        self.id = task_id
+        self.description = description
+        self.priority = priority  # เพิ่มแอตทริบิวต์ priority
+        self.due_date = due_date
+        self.completed = completed
 
-   def mark_completed(self):
-       self.completed = True
-       print(f"Task {self.id} '{self.description}' marked as completed.")
+    def mark_completed(self):
+        self.completed = True
+        print(f"Task {self.id} '{self.description}' marked as completed.")
 
-   def __str__(self):
-       status = "✓" if self.completed else " "
-       due = f" (Due: {self.due_date})" if self.due_date else ""
-       return f"[{status}] {self.id}. {self.description}{due}"
+    def __str__(self):
+        status = "✓" if self.completed else " "
+        due = f" (Due: {self.due_date})" if self.due_date else ""
+        return f"[{status}] {self.id}. {self.description} ({self.priority}){due}"
 
 class TaskManager:
-    def __init__(self, storage: TaskStorage): # รับ storage object เข้ามา
-       self.storage = storage
-       self.tasks = self.storage.load_tasks()
-       self.next_id = max([t.id for t in self.tasks] + [0]) + 1 if self.tasks else 1
-       print(f"Loaded {len(self.tasks)} tasks. Next ID: {self.next_id}")
+    def __init__(self, storage):
+        self.storage = storage
+        self.tasks = self.storage.load_tasks()
+        self.next_id = max([t.id for t in self.tasks] + [0]) + 1 if self.tasks else 1
+        print(f"Loaded {len(self.tasks)} tasks. Next ID: {self.next_id}")
 
-    def add_task(self, description, due_date=None):
-       task = Task(self.next_id, description, due_date)
-       self.tasks.append(task)
-       self.next_id += 1
-       self.storage.save_tasks(self.tasks) # Save after adding
-       print(f"Task '{description}' added.")
-       return task
+    def add_task(self, description, priority, due_date=None): # เพิ่ม priority เข้ามา
+        task = Task(self.next_id, description, priority, due_date) # ส่ง priority ไปยัง Task
+        self.tasks.append(task)
+        self.next_id += 1
+        self.storage.save_tasks(self.tasks)
+        print(f"Task '{description}' added with priority '{priority}'.")
+        return task
 
     def list_tasks(self):
-       print("\n--- Current Tasks ---")
-       if not self.tasks:
-           print("No tasks available.")
-           return
-       for task in self.tasks:
-           print(task)
-       print("---------------------")
+        print("\n--- Current Tasks ---")
+        if not self.tasks:
+            print("No tasks available.")
+            return
+        for task in self.tasks:
+            print(task)
+        print("---------------------")
+
     def get_task_by_id(self, task_id):
-       for task in self.tasks:
-           if task.id == task_id:
-               return task
-       return None
+        for task in self.tasks:
+            if task.id == task_id:
+                return task
+        return None
 
     def mark_task_completed(self, task_id):
-       task = self.get_task_by_id(task_id)
-       if task:
-           task.mark_completed()
-           return True
-       print(f"Task {task_id} not found.")
-       return False
+        task = self.get_task_by_id(task_id)
+        if task:
+            task.mark_completed()
+            return True
+        print(f"Task {task_id} not found.")
+        return False
     
 
 
